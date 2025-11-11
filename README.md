@@ -1,4 +1,4 @@
-# GeneFarm — AI × Genetics × Smart Livestock Platform  
+# GeneFarm
 GeneFarm 是一個結合基因資料分析與體重成長預測模型的智慧畜牧平台，系統採用 Bi-LSTM + Attention 與 Transformer 深度學習模型，並搭配 MongoDB 資料庫與網頁介面，提供雙角色模式：
 
 ● 基因研究員：專注於基因數據分析與預測。
