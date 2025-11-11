@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Animal Manager | 編輯資料</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/static/css/format.css">
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
+  <link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-black.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background-color: #009688; color: white; }
+    td[contenteditable="true"] { background-color: #f9f9f9; }
+    .action-btn { cursor: pointer; color: red; font-weight: bold; }
+  </style>
+</head>
+<body class="w3-theme-l5">
+
+  <div class="w3-container w3-teal">
+    <h2>編輯資料庫</h2>
+  </div>
+  <a href="/AnimalManager/myfarm" class="w3-button" style="background-color: #b3b3b3;">⬅ 返回我的牧場</a>
+
+  <div class="w3-container w3-padding-32">
+    <div style="margin-bottom:10px; display: flex; align-items: center; gap: 20px;">
+      <label for="collectionSelect" style="margin-right:10px;">資料集：</label>
+      <select id="collectionSelect" class="w3-select" style="width:300px; height: 45px;" onchange="changeCollection()"></select>
+      <button class="w3-button" style="background-color: rgb(237, 228, 100); margin-left: 20px; height: 45px;" onclick="addRow()">➕ 新增資料</button>
+    </div>
+
+    <!-- 資料表 -->
+    <div style="overflow-x:auto;">
+      <table id="editTable">
+        <thead id="editTableHeader"></thead>
+        <tbody id="editTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- 操作按鈕 -->
+    <div">
+      <button class="w3-button w3-teal" onclick="saveChanges()">💾 儲存修改</button>
+
+      <!-- 頁碼 -->
+      <div id="paginationControls" style="text-align: center;"></div>
+    </div>
+  </div>
+
+<script>
+let currentCollection = null;
+let tableData = [];
+let columns = [];
+let currentPage = 1;
+const rowsPerPage = 10; // 每頁 10 筆
+let deletedRows = [];   // 儲存被刪掉的 _id
+
+// 初始化
+window.onload = function() {
+  loadCollections();
+  const urlParams = new URLSearchParams(window.location.search);
+  const collectionName = urlParams.get("collection");
+  if (collectionName) {
+    document.getElementById("collectionSelect").value = collectionName;
+    loadCollectionData(collectionName);
+  }
+}
+
+// 載入使用者資料集
+async function loadCollections() {
+  const token = localStorage.getItem("userToken");
+  if (!token) { alert("請先登入"); return; }
+
+  const res = await fetch("/farm/collections", { headers: { "Authorization": "Bearer " + token } });
+  if (!res.ok) { alert("無法載入資料集"); return; }
+
+  const collections = await res.json();
+  const select = document.getElementById("collectionSelect");
+  select.innerHTML = "<option value='' disabled selected>請選擇資料集</option>"; 
+  collections.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c;
+    opt.textContent = c;
+    select.appendChild(opt);
+  });
+}
+
+// 切換資料集
+function changeCollection() {
+  const select = document.getElementById("collectionSelect");
+  const collectionName = select.value;
+  if (collectionName) loadCollectionData(collectionName);
+}
+
+// 載入資料集內容
+async function loadCollectionData(collectionName) {
+  const token = localStorage.getItem("userToken");
+  if (!token) { alert("請先登入"); return; }
+
+  try {
+    const res = await fetch(`/farm/data/${collectionName}`, {
+      headers: { "Authorization": "Bearer " + token }
+    });
+    if (!res.ok) { alert("無法載入資料"); return; }
+
+    const result = await res.json();
+    currentCollection = collectionName;
+    tableData = result.data || [];
+
+    // 如果 fields 有值就用，沒有就自動抓資料第一筆欄位，排除 _id 和 user_id
+    if (result.fields && result.fields.length > 0) {
+      columns = result.fields;
+    } else if (tableData.length > 0) {
+      columns = Object.keys(tableData[0]).filter(f => f !== "_id" && f !== "user_id");
+    } else {
+      columns = [];
+    }
+
+    currentPage = 1; // 預設回到第一頁
+
+    // console.log("載入資料集:", collectionName);
+    // console.log("欄位:", columns);
+    // console.log("資料筆數:", tableData.length);
+
+    renderTable();
+  } catch (err) {
+    console.error("載入資料失敗:", err);
+    alert("載入資料失敗，請查看 console");
+  }
+}
+
+// 渲染表格
+function renderTable() {
+  const header = document.getElementById("editTableHeader");
+  const body = document.getElementById("editTableBody");
+  header.innerHTML = "";
+  body.innerHTML = "";
+
+  if (!columns.length) {
+    header.innerHTML = "<tr><th>（空資料集）</th></tr>";
+    return;
+  }
+
+  // 表頭
+  const trHead = document.createElement("tr");
+  columns.forEach(col => {
+    const th = document.createElement("th");
+    th.textContent = col;
+    trHead.appendChild(th);
+  });
+  const thAction = document.createElement("th");
+  thAction.textContent = "操作";
+  trHead.appendChild(thAction);
+  header.appendChild(trHead);
+
+  // 計算分頁範圍
+  const start = (currentPage - 1) * rowsPerPage;
+  const end = Math.min(start + rowsPerPage, tableData.length);
+  const pageData = tableData.slice(start, end);
+
+  // 表格內容
+  pageData.forEach((row, rowIndex) => {
+    const tr = document.createElement("tr");
+    columns.forEach(col => {
+      const td = document.createElement("td");
+      td.contentEditable = "true";
+      td.textContent = row[col] ?? ""; // 若欄位值不存在則顯示空白
+      td.style.cursor = "text";
+      td.oninput = () => {
+        tableData[start + rowIndex][col] = td.textContent;
+        tableData[start + rowIndex]._modified = true; // 標記為已修改
+        td.style.backgroundColor = "#fffae6"; // 已修改標記
+      };
+      tr.appendChild(td);
+    });
+
+    const tdAction = document.createElement("td");
+    tdAction.innerHTML = `<span class="action-btn" onclick="deleteRow(${start + rowIndex})">🗑️</span>`;
+    tr.appendChild(tdAction);
+
+    body.appendChild(tr);
+  });
+
+  renderPagination();
+}
+
+// 渲染分頁按鈕
+function renderPagination() {
+  const container = document.getElementById("paginationControls");
+  if (!container) return;
+
+  container.innerHTML = "";
+  const totalPages = Math.ceil(tableData.length / rowsPerPage);
+  if (totalPages <= 1) return;
+
+  const makeBtn = (label, page, disabled) => {
+    const btn = document.createElement("button");
+    btn.textContent = label;
+    btn.disabled = disabled;
+    btn.className = "w3-button w3-border w3-small w3-margin";
+    btn.onclick = () => { currentPage = page; renderTable(); };
+    return btn;
+  };
+
+  container.appendChild(makeBtn("⏮️ 第一頁", 1, currentPage === 1));
+  container.appendChild(makeBtn("◀️ 上一頁", currentPage - 1, currentPage === 1));
+
+  const pageSelect = document.createElement("select");
+  for (let i = 1; i <= totalPages; i++) {
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = `第 ${i} 頁`;
+    if (i === currentPage) option.selected = true;
+    pageSelect.appendChild(option);
+  }
+  pageSelect.onchange = () => {
+    currentPage = Number(pageSelect.value);
+    renderTable();
+  };
+  container.appendChild(pageSelect);
+
+  container.appendChild(makeBtn("下一頁 ▶️", currentPage + 1, currentPage === totalPages));
+  container.appendChild(makeBtn("最後頁 ⏭️", totalPages, currentPage === totalPages));
+}
+
+// 新增空列
+function addRow() {
+  if (!columns.length) { alert("請先選擇資料集"); return; }
+  const newRow = {};
+  columns.forEach(c => newRow[c] = "");
+  tableData.push(newRow);
+  currentPage = Math.ceil(tableData.length / rowsPerPage); // 跳到最後一頁
+  renderTable();
+
+  // 聚焦到新增空列的第一個欄位
+  const tbody = document.getElementById("editTableBody");
+  if (tbody.rows.length > 0) {
+    const firstCell = tbody.rows[tbody.rows.length - 1].cells[0];
+    if (firstCell) firstCell.focus();
+  }
+}
+
+// 刪除列
+async function deleteRow(index) {
+  const row = tableData[index];
+  if (row._id) {
+    deletedRows.push(row._id); // 儲存待刪除
+  }
+  tableData.splice(index, 1);
+  renderTable();
+}
+
+// 儲存修改
+async function saveChanges() {
+  if (!currentCollection) { alert("請先選擇資料集"); return; }
+  const token = localStorage.getItem("userToken");
+  if (!token) { alert("請先登入"); return; }
+
+  // 先確認是否要存檔
+  const changedRows = tableData.filter(row => row._modified || !row._id);
+  if (deletedRows.length === 0 && changedRows.length === 0) {
+    alert("沒有任何變更需要儲存");
+    return;
+  }
+
+  // 建立修改摘要
+  let summary = "";
+  if (deletedRows.length > 0) summary += `刪除: ${deletedRows.length} 筆\n`;
+  if (changedRows.length > 0) {
+    summary += "修改/新增資料:\n";
+    changedRows.forEach((row, idx) => {
+      const changedCols = Object.keys(row).filter(k => row._modifiedCols && row._modifiedCols.includes(k));
+      if (changedCols.length > 0 || !row._id) {
+        summary += `第 ${idx + 1} 列修改欄位: ${changedCols.join(", ")}\n`;
+      }
+    });
+  }
+
+  const confirmSave = confirm(`您確定要儲存嗎？`);
+  if (!confirmSave) return;
+
+  let successCount = 0;
+  let failCount = 0;
+  let deleteSuccess = 0;
+  let deleteFail = 0;
+
+  // 先處理刪除
+  for (let id of deletedRows) {
+    try {
+      const res = await fetch(`/farm/delete/${currentCollection}/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": "Bearer " + token }
+      });
+      if (!res.ok) throw new Error(await res.text());
+      deleteSuccess++;
+    } catch (err) {
+      console.error("刪除失敗:", id, err);
+      deleteFail++;
+    }
+  }
+  deletedRows = [];
+
+  // 處理修改/新增
+  for (let row of changedRows) {
+    try {
+      const payload = { ...row };
+      delete payload._id;
+      delete payload._modified;
+      delete payload._modifiedCols;
+
+      if (row._id) {
+        // 更新
+        const res = await fetch(`/farm/update/${currentCollection}/${row._id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(result.detail || res.statusText);
+      } else {
+        // 新增
+        const res = await fetch(`/farm/manual_add/${currentCollection}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(result.detail || res.statusText);
+      }
+      successCount++;
+    } catch (err) {
+      console.error("儲存失敗的資料列:", row, err);
+      failCount++;
+    }
+  }
+
+  // 顯示成功訊息
+  if (successCount + deleteSuccess > 0) {
+    alert(`${currentCollection} 更新成功\n刪除成功: ${deleteSuccess} 筆\n修改/新增成功: ${successCount} 筆`);
+  } else if (failCount + deleteFail > 0) {
+    alert(`${currentCollection} 更新失敗\n刪除失敗: ${deleteFail} 筆\n修改/新增失敗: ${failCount} 筆`);
+  }
+
+  await loadCollectionData(currentCollection); // 重新載入資料
+}
+</script>
+
+</body>
+</html>

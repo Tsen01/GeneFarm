@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Animal Manager</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- <link rel="stylesheet" href="/static/css/format.css"> -->
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
+  <link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-black.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <style>
+    input{
+        width: 150px;
+    }
+    label{
+      font-size: 20px;
+    }
+    td{
+      font-size: 20px;
+    }
+    .w3-select{
+      width: 100px;
+    }
+    #growthBtn, #geneBtn, #genePredictBtn{
+      display: none; /* 預設隱藏 */
+    }
+  </style>
+</head>
+<script src="../static/js/auth.js"></script>
+<body id="myPage">
+  <script>
+    function openTab(evt, tabName) {
+      var i, tabcontent, tablinks;
+
+      tabcontent = document.getElementsByClassName("tabcontent");
+      for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+      }
+
+      tablinks = document.getElementsByClassName("tablink");
+      for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" w3-teal", "");
+      }
+
+      document.getElementById(tabName).style.display = "block";
+      evt.currentTarget.className += " w3-teal";
+    }
+  </script>
+
+  <!-- Navbar -->
+  <div class="w3-top">
+  <div class="w3-bar w3-theme-d2 w3-left-align w3-xlarge">
+    <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-hover-white w3-theme-d2" href="javascript:void(0);" onclick="openNav()"><i class="fa fa-bars"></i></a>
+    <a href="#" onclick="checkLoginAndRedirect('/AnimalManager')" class="w3-bar-item w3-button"><i class="fa fa-home w3-margin-right"></i>HOME</a>
+    <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/myfarm')" class="w3-bar-item w3-button w3-hide-small w3-hover-white" id="role">我的牧場</a>
+    <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/predict')" class="w3-bar-item w3-button w3-hide-small w3-hover-white" id="growthBtn">成長預測</a>
+    <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/gene')" class="w3-bar-item w3-button w3-hide-small w3-hover-white" id="geneBtn">基因資料庫</a>
+    <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/genePredict')" class="w3-bar-item w3-button w3-hide-small w3-hover-white" id="genePredictBtn">基因預測</a>
+    <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/history')" class="w3-bar-item w3-button w3-hide-small w3-hover-white">歷史預測紀錄</a>
+    <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/search')" class="w3-bar-item w3-button w3-hide-small w3-right w3-hover-teal w3-teal" title="Search"><i class="fa fa-search"></i></a>
+    <div class="w3-container w3-right" id="authButtons">  
+      <button onclick="document.getElementById('id01').style.display='block'" class="w3-button w3-theme w3-hover-teal" title="登入/註冊">登入/註冊</button>
+    </div>
+  </div>
+
+  <!-- Navbar on small screens -->
+    <div id="navDemo" class="w3-bar-block w3-theme-d2 w3-hide w3-hide-large w3-hide-medium">
+      <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/myfarm')" class="w3-bar-item w3-button">我的牧場</a>
+      <a href="#contact" class="w3-bar-item w3-button">成長預測</a>
+      <div class="w3-container">  
+        <button onclick="openSignupTab()" class="w3-button w3-theme w3-hover-teal">登入/註冊</button>
+      </div>
+      <a href="/AnimalManager/search" class="w3-bar-item w3-button">Search</a>
+    </div>
+  </div>
+
+  <!-- Image Header -->
+  <div class="w3-display-container w3-animate-opacity">
+    <img src="/static/img/background.png" alt="boat" style="width:100%;min-height:300px;max-height:550px;">
+  </div>
+
+  <!-- Log in / Sign up Modal -->
+  <div id="id01" class="w3-modal">
+    <div class="w3-modal-content w3-card-4 w3-animate-top" style="width: 500px;">
+      <header class="w3-container w3-teal w3-display-container">
+        <span onclick="document.getElementById('id01').style.display='none'" class="w3-button w3-teal w3-display-topright">
+          <i class="fa fa-remove"></i>
+        </span>
+      </header>
+
+      <!-- Tab buttons -->
+      <div class="w3-bar w3-light-grey">
+        <button class="w3-bar-item w3-button tablink w3-teal" onclick="openTab(event, 'LoginForm')">登入</button>
+        <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'SignupForm')">註冊</button>
+      </div>
+
+      <!-- 登入表單 -->
+      <form id="LoginForm" class="tabcontent" onsubmit="loginUser(event)">
+        <div class="w3-container" style="padding: 20px;">
+          <label for="login_mail">Email</label>
+          <input type="email" id="login_mail" class="w3-input w3-border" placeholder="Email"><br>
+          <label for="login_pw">Password</label>
+          <input type="password" id="login_pw" class="w3-input w3-border" placeholder="Password"><br>
+          <a onclick="document.getElementById('id03').style.display='block'" style="cursor: pointer; color: #009688;">忘記密碼</a><br><br>
+          <div style="text-align: center;">
+            <button type="submit" class="w3-button w3-theme">登入</button>
+          </div>
+        </div>
+      </form>
+
+      <!-- 註冊表單 -->
+      <form id="SignupForm" class="tabcontent" style="display:none;" onsubmit="registerUser(event)">
+        <div class="w3-container" style="padding: 20px;">
+          <label for="signup_FarmName">牧場名稱 / 研究員名稱</label>
+          <input type="text" id="signup_FarmName" class="w3-input w3-border" placeholder="牧場名稱 / 研究員名稱"><br><br>
+          <label for="signup_mail">Email</label>
+          <input type="email" id="signup_mail" class="w3-input w3-border" placeholder="Email"><br>
+          <label for="signup_pw">Password</label>
+          <input type="password" id="signup_pw" class="w3-input w3-border" placeholder="Password"><br><br>
+          <label for="userRole">身分</label>
+          <select id="userRole" class="w3-select w3-border">
+            <option value="Farmer" selected>牧場主</option>
+            <option value="GeneticResearcher">基因研究者</option>
+          </select><br><br>
+          <div style="text-align: center;">
+            <button type="submit" class="w3-button w3-theme">註冊</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 忘記密碼 -->
+  <div id="id03" class="w3-modal" style="display:none;">
+    <div class="w3-modal-content w3-card-4 w3-animate-top" style="width:500px;">
+      <header class="w3-container w3-teal"> 
+        <span onclick="closeModal()" class="w3-button w3-display-topright">&times;</span>
+        <h4 style="text-align:center;">忘記密碼</h4>
+      </header>
+      <div class="w3-container" style="padding:20px;">
+        <label>Email</label><br>
+        <input type="email" id="resetEmail" class="w3-input w3-border" placeholder="輸入Email"><br>
+        <button class="w3-button w3-teal" onclick="sendCode()">發送驗證碼</button>
+
+        <div id="verifySection" style="display:none; padding-top:20px;">
+          <label>驗證碼</label><br>
+          <input type="text" id="codeInput" class="w3-input w3-border" placeholder="輸入驗證碼"><br>
+          <span id="codeError" class="w3-text-red" style="display:none;">驗證碼錯誤或過期</span><br>
+          <button class="w3-button w3-teal" onclick="verifyCode()">驗證</button>
+        </div>
+
+        <form id="resetForm" style="display:none; padding-top:20px;">
+          <label>新密碼</label><br>
+          <input type="password" id="newPw" class="w3-input w3-border" placeholder="輸入新密碼"><br>
+          <label>確認新密碼</label><br>
+          <input type="password" id="confirmPw" class="w3-input w3-border" placeholder="再次輸入新密碼"><br><br>
+          <button type="submit" class="w3-button w3-teal">設定新密碼</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 搜尋 -->
+  <label style="font-size: 16px; margin: 10px;">資料集選擇：</label>
+  <select id="collectionSelect" class="w3-select w3-border w3-margin" style="width: 30%;"></select>
+
+  <div id="fieldFilters" class="w3-margin" style="width: 90%;"></div>
+  <input id="searchInput" class="w3-input w3-border w3-round w3-inline" style="width:60%;display:inline-block;margin: 10px;" placeholder="輸入關鍵字...">
+  <button id="searchBtn" class="w3-button w3-green w3-round w3-margin-left">查詢</button>
+
+  <table class="w3-table w3-bordered w3-striped">
+    <thead id="farmTableHead"></thead>
+    <tbody id="farmTableBody"></tbody>
+  </table>
+
+  <div id="paginationControls" class="w3-center w3-margin"></div>
+
+
+  <!-- Footer -->
+  <footer class="w3-container w3-padding-32 w3-theme w3-center">
+    <h4>Follow Us</h4>
+    <a class="w3-button w3-large w3-teal" href="javascript:void(0)" title="Facebook"><i class="fa fa-facebook"></i></a>
+    <a class="w3-button w3-large w3-teal" href="javascript:void(0)" title="Twitter"><i class="fa fa-twitter"></i></a>
+    <a class="w3-button w3-large w3-teal" href="javascript:void(0)" title="Google +"><i class="fa fa-google-plus"></i></a>
+    <a class="w3-button w3-large w3-teal" href="javascript:void(0)" title="Google +"><i class="fa fa-instagram"></i></a>
+    <a class="w3-button w3-large w3-teal w3-hide-small" href="javascript:void(0)" title="Linkedin"><i class="fa fa-linkedin"></i></a>
+    <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
+
+    <div style="position:relative;bottom:100px;z-index:1;" class="w3-tooltip w3-right">
+      <span class="w3-text w3-padding w3-teal w3-hide-small">Go To Top</span>   
+      <a class="w3-button w3-theme" href="#myPage"><span class="w3-xlarge">
+      <i class="fa fa-chevron-circle-up"></i></span></a>
+    </div>
+  </footer>
+
+  
+  <!-- 忘記密碼 -->
+  <script src="/static/js/ForgotPW.js"></script>
+
+  <!-- 使用者登入狀態 -->
+  <script src="/static/js/localStorage.js"></script>
+
+  <!-- 查詢 -->
+  <script src="/static/js/search.js"></script>
+</body>
+</html>
