@@ -30,7 +30,6 @@ from flask import request, jsonify
 from scipy.stats import ttest_ind
 from statsmodels.stats.multitest import multipletests
 from io import BytesIO
-from model_def import TabTransformerCLS, EncoderLayerWithAttn
 from zoneinfo import ZoneInfo
 
 def logistic_growth(x, K, r, x0):
@@ -51,7 +50,7 @@ def safe_date(value):
 load_dotenv()
 
 # 允許的來源
-origins = ["http://localhost:8000", "http://127.0.0.1:8000"]
+origins = os.getenv("ALLOWED_ORIGINS", "").split(",")
 
 print("SSH_HOST:", os.getenv("SSH_HOST"))
 print("MONGO_HOST:", os.getenv("MONGO_HOST"))
@@ -185,7 +184,8 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 # Enable CORS (more secure than allowing all origins)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -498,9 +498,9 @@ def run_prediction(payload: Dict = Body(...), current_user=Depends(get_current_u
         "model": model_type,
         "earnum": to_native(input_data[0]),
         "predictions": {
-            "Bi-LSTM_Attention": [{"date": d.isoformat(), "days": (d - self_birmeadate).days, "weight": float(w)} for d,w in zip(lstm_dates, lstm_preds)],
-            "Bi-LSTM_no_Attention": [{"date": d.isoformat(), "days": (d - self_birmeadate).days, "weight": float(w)} for d,w in zip(bilstm_dates, bilstm_preds)],
-            "Linear_Regression": [{"date": d.isoformat(), "days": (d - self_birmeadate).days, "weight": float(w)} for d,w in zip(lr_dates, lr_preds)]
+            "Bi-LSTM_Attention": [{"date": d.strftime("%Y/%-m/%-d"), "days": (d - self_birmeadate).days, "weight": float(w)} for d,w in zip(lstm_dates, lstm_preds)],
+            "Bi-LSTM_no_Attention": [{"date": d.strftime("%Y/%-m/%-d"), "days": (d - self_birmeadate).days, "weight": float(w)} for d,w in zip(bilstm_dates, bilstm_preds)],
+            "Linear_Regression": [{"date": d.strftime("%Y/%-m/%-d"), "days": (d - self_birmeadate).days, "weight": float(w)} for d,w in zip(lr_dates, lr_preds)]
         },
         "metrics": metrics,
         "actual": actual_series
