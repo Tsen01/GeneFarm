@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Animal Manager</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/format.css">
+    <script src="/js/loadData.js"></script>
+    <style>
+        div {
+            margin-left: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>動物資料管理</h1>
+    <div>
+        <label for="type">選擇類型 : </label>
+        <select id="type">
+            <option value="goat">Goat</option>
+            <option value="sheep">Sheep</option>
+        </select>
+        <button onclick="loadFields()">載入欄位</button>
+    </div>
+    <div>
+        <label for="ear_num">EarNum : </label>
+        <input type="text" id="ear_num" placeholder="輸入EarNum">
+        <button onclick="loadData()">查詢資料</button>
+    </div>
+    <div>
+        <form id="predictForm">
+        <label>模型選擇：
+            <select name="model_type">
+            <option value="xgboost">XGBoost</option>
+            <option value="lstm">LSTM</option>
+            </select>
+        </label><br>
+        <label>self_EarNum: <input type="text" name="input_data[0]" required></label><br>
+        <label>self_BirWeight: <input type="text" name="input_data[1]" required></label>
+        <label>self_BirMeaDate(YYYY-MM-DD): <input type="date" name="input_data[2]" required></label><br>
+        <label>self_First_Weight: <input type="text" name="input_data[3]" required></label>
+        <label>self_First_MeaDate(YYYY-MM-DD): <input type="date" name="input_data[4]" required></label><br>
+        <label>self_Second_Weight: <input type="text" name="input_data[5]" required></label>
+        <label>self_Second_MeaDate(YYYY-MM-DD): <input type="date" name="input_data[6]" required></label><br>
+        <label>self_Third_Weight: <input type="text" name="input_data[7]" required></label>
+        <label>self_Third_MeaDate(YYYY-MM-DD): <input type="date" name="input_data[8]" required></label><br>
+        <label>self_Forth_Weight: <input type="text" name="input_data[9]"></label>
+        <label>self_Forth_MeaDate(YYYY-MM-DD): <input type="date" name="input_data[10]"></label><br>
+        <label>self_Fifth_Weight: <input type="text" name="input_data[11]"></label>
+        <label>self_Fifth_MeaDate(YYYY-MM-DD): <input type="date" name="input_data[12]"></label><br>
+        <label>self_Breed: <input type="text" name="input_data[13]" required></label><br>
+        <label>dam_EarNum: <input type="text" name="input_data[14]" required></label>
+        <label>dam_Breed: <input type="text" name="input_data[15]" required></label><br>
+        <label>sire_EarNum: <input type="text" name="input_data[16]" required></label>
+        <label>sire_Breed: <input type="text" name="input_data[17]" required></label><br>
+        <label>預測天數(不填就預設30天) : <input type="number" name="input_data[18]"></label><br>
+
+        <!-- 依你的輸入順序繼續下去... -->
+
+        <button type="submit">開始預測</button>
+        <div id="resultArea"></div>
+        <img id="growthCurve">
+        </form>
+    </div>
+    
+
+    <div id="loading" style="display: none;">
+        <p>查詢中...</p>
+    </div>
+
+    <div id="fields"></div>
+    <div id="data"></div>
+
+    <script>
+        async function loadFields() {
+            const type = document.getElementById('type').value;
+            const res = await fetch(`http://localhost:8000/fields/${type}`);
+            const fields = await res.json();
+            const container = document.getElementById('fields');
+            container.innerHTML = '';
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = '這是測試toast';
+            document.body.appendChild(toast);
+
+            for (const col in fields) {
+                const div = document.createElement('div');
+                div.classList.add("collection-group");
+                div.innerHTML = `<h3>${col}</h3>`;
+                fields[col].forEach(f => {
+                    const input = document.createElement('input');
+                    input.placeholder = f;
+                    input.name = `${col}_${f}`;
+                    input.classList.add("field-input");
+                    div.appendChild(input);
+                });
+                container.appendChild(div);
+            }
+        }
+        document.getElementById("predictForm").onsubmit = async function (e) {
+            e.preventDefault();
+            const form = e.target; 
+            const rawInputs = Array.from(form.querySelectorAll("input[name^='input_data']"));
+            const input_data = rawInputs.map((input, idx) => {
+                const val = input.value;
+                if (idx === 1 || idx === 3 || idx === 5 || idx === 7 || idx === 9 || idx === 11) {
+                    // 欄位: self_Weight, self_BirWeight, dam_Weight, sire_Weight
+                    return parseFloat(val);
+                } else {
+                    // 其他欄位（包含日期與耳號）
+                    return val;
+                }
+            });
+
+            const data = {
+                model_type: form.model_type.value,
+                input_data: input_data
+            };
+
+            console.log("🚀 預測送出內容:", data);  // 除錯用
+
+            try {
+                const res = await fetch("/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.detail || "預測失敗");
+                }
+                let toast;
+                const result = await res.json();
+                 // 顯示結果在網頁上（把所有欄位顯示）
+                let html = `
+                    <p><b>模型類型：</b> ${result.model}</p>
+                    <p><b>耳號：</b> ${result.earnum}</p>
+                    <p><b>預測結果：</b> ${result.prediction}</p>
+                    <p><b>成長天數：</b> ${result.growth_days}</p>
+                    <p><b>成長率：</b> ${result.growth_rate}</p>
+                `;
+
+                if (result.growth_curve_base64) {
+                    html += `<img src="data:image/png;base64,${result.growth_curve_base64}" 
+                                alt="成長曲線擬合圖" style="max-width:100%;">`;
+                    
+                    toast = document.createElement('div');
+                    toast.className = 'toast';
+                    toast.textContent = 'success';
+                } else {
+                    html += `<p>無法顯示成長曲線圖</p>`;
+
+                    toast = document.createElement('div');
+                    toast.className = 'toast';
+                    toast.textContent = 'fail';
+                }
+
+                document.body.appendChild(toast);
+
+                    setTimeout(() => {
+                        toast.classList.add('hide');
+                        setTimeout(() => {
+                            document.body.removeChild(toast);
+                        }, 500);
+                    }, 3000);
+
+                document.getElementById("resultArea").innerHTML = html;
+
+            } catch (err) {
+                alert("❌ 錯誤：" + err.message);
+            }
+
+        };
+        document.getElementById("growthCurve").src = `data:image/png;base64,${result.growth_curve_base64}`;
+    </script>
+</body>
+</html>

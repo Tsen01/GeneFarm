@@ -1,0 +1,78 @@
+# ----------------------------------
+# 1. 虛擬環境 (Virtual Environments)
+# ----------------------------------
+venv/
+.venv/
+py312/
+
+# ---------------------------------
+# 2. Python 編譯和快取檔案
+# ---------------------------------
+# Python 2
+*.pyc
+*~$
+
+# Python 3
+__pycache__/
+ipynb_checkpoints/
+.ipynb*
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
+.nox/
+
+# ----------------------------------
+# 3. 作業系統/編輯器檔案
+# ----------------------------------
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# VS Code 設定
+.vscode/
+
+# ----------------------------------
+# 4. 環境變數和敏感資料
+# ----------------------------------
+.env
+.flaskenv
+*.local
+instance/
+
+# ----------------------------------
+# 5. 模型權重與訓練輸出
+# ----------------------------------
+*.pkl
+*.pth
+*.h5
+*.keras
+*.weights.h5
+best_model.*
+Bi-LSTM*
+Linear*
+LSTM*
+gene_Auto*
+gene.ipynb
+MLP*
+RNN*
+xgboost*
+XGBoost*
+
+# ----------------------------------
+GSE275445*
+GSE275684*
+GSM2896343*
+GSM3896343*
+health_data_process.ipynb
+Milk_Data_process.ipynb
+weight_*
+
+gzto*
+*.gz
+*.sh
+*.sh
+*.txt
+*.xls
+*.zip
