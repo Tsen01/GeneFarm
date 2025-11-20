@@ -119,9 +119,9 @@ def multi_step_lr_predict(flat_seq, base_static, birth_date, breed_name, breed_l
     target_dates.append(last_mea_date)
 
     seq_local = flat_seq.copy()
-    seq_local = seq_local[1:] + [last_real_weight]   # ✅ 把最後真實 weight 放進序列
+    seq_local = seq_local[1:] + [last_real_weight]   # 把最後真實 weight 放進序列
 
-    last_days = (last_mea_date - birth_date).days    # ✅ 從最後量測的天數開始
+    last_days = (last_mea_date - birth_date).days    # 從最後量測的天數開始
 
     for step in range(1, n_steps+1):
         next_days = last_days + step_days

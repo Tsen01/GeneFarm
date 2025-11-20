@@ -138,6 +138,8 @@ function renderTablePage(page) {
                 }
             }
             // td.textContent = value;
+
+            td.textContent = value;
             tr.appendChild(td);
         });
         tbody.appendChild(tr);
