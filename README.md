@@ -56,13 +56,14 @@ DB_NAME=YOUR_DATABASE_NAME
 
 ALLOWED_ORIGINS=http://localhost,http://127.0.0.1,http://127.0.0.1:8000,https://genefarm.live
 ```
-3. 啟動後端服務有兩種方式：
+3. 啟動後端服務有三種方式：
   - 第一種輸入指令
   ```bash
   uvicorn main:app --reload --port 8000
   ```
   打開網頁輸入網址 http://127.0.0.1:8000 or http://localhost:8000
 
+<br>
   
   - 第二種開啟 goat_notebook.ipynb，並執行以下程式
   ```bash
@@ -83,10 +84,32 @@ ALLOWED_ORIGINS=http://localhost,http://127.0.0.1,http://127.0.0.1:8000,https://
   server_thread.start()
   ```
 
-  點擊執行結果的網址或在網頁輸入網址 http://127.0.0.1:8000 or https://genefarm.live
+  點擊執行結果的網址或在網頁輸入網址 http://127.0.0.1:8000 or http://localhost:8000
   ```bash
   INFO:     Uvicorn running on http://127.0.0.1:8000
   ```
+<br>
+
+  - 第三種用 pm2, Name.com, Cloudflare
+    1. 先安裝 pm2
+    ```bash
+      npm install -g pm2
+    ```
+    2. 啟動 FastAPI
+    在你的專案資料夾內執行：
+    ```bash
+      pm2 start "uvicorn main:app --host 0.0.0.0 --port 8000" --name GeneFarm
+    ```
+    3. 查看是否成功運作
+    ```bash
+      pm2 status
+    ```
+    4. 買 Name.com 的網域，再前往 [Cloudflare 官網](https://www.cloudflare.com/)註冊/登入帳號。
+    5. 新增網域後，會取得兩個 Nameservers
+    6. 回到 Name.com 修改 Nameservers 
+      - Name.com > MyDomains > genefarm.live > Manage Nameservers
+      - 將預設的 Nameservers 刪除，新增拿到的兩個 Nameservers 
+    7. 回到 Cloudflare 後台，建立 Tunnel
 
 ---
 
