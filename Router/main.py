@@ -138,12 +138,12 @@ async def lifespan(app: FastAPI):
             f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}/?authSource={AUTH_DB}"
         )
         app.state.mongo_client = mongo_client
-        print("🔗 MongoDB 連線已建立")
+        print("MongoDB 連線已建立")
         yield
     finally:
         if mongo_client is not None:
             mongo_client.close()
-            print("🛑 MongoDB 連線已關閉")
+            print("MongoDB 連線已關閉")
 
 
 app = FastAPI(lifespan=lifespan)

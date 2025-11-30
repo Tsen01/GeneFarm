@@ -1,7 +1,7 @@
 # GeneFarm
 GeneFarm 是一個結合基因資料分析與體重成長預測模型的智慧畜牧平台，系統採用 Bi-LSTM + Attention 與 Transformer 深度學習模型，並搭配 MongoDB 資料庫與網頁介面，提供雙角色模式：
 
-● 基因研究員：專注於基因數據分析與預測。<br>
+● 基因研究員：專注於基因數據分析。<br>
 ● 牧場使用者：聚焦於羊隻管理與成長預測。
 
 ---
@@ -54,12 +54,12 @@ MONGO_PASSWORD=YOUR_MONGO_PASSWORD
 AUTH_DB=YOUR_AUTH_DB
 DB_NAME=YOUR_DATABASE_NAME
 
-ALLOWED_ORIGINS=http://localhost,http://127.0.0.1,http://127.0.0.1:8000
+ALLOWED_ORIGINS=http://localhost,http://127.0.0.1,http://127.0.0.1:8000,https://genefarm.live
 ```
 3. 啟動後端服務有兩種方式：
   - 第一種輸入指令
   ```bash
-  uvicorn main:app --reload --host 0.0.0.0 --port 8000
+  uvicorn main:app --reload --port 8000
   ```
   打開網頁輸入網址 http://127.0.0.1:8000 or http://localhost:8000
 
@@ -83,7 +83,7 @@ ALLOWED_ORIGINS=http://localhost,http://127.0.0.1,http://127.0.0.1:8000
   server_thread.start()
   ```
 
-  點擊執行結果的網址或在網頁輸入網址 http://127.0.0.1:8000
+  點擊執行結果的網址或在網頁輸入網址 http://127.0.0.1:8000 or https://genefarm.live
   ```bash
   INFO:     Uvicorn running on http://127.0.0.1:8000
   ```
