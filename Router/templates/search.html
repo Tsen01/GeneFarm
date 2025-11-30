@@ -26,51 +26,32 @@
     }
   </style>
 </head>
-<script src="../static/js/auth.js"></script>
 <body id="myPage">
-  <script>
-    function openTab(evt, tabName) {
-      var i, tabcontent, tablinks;
-
-      tabcontent = document.getElementsByClassName("tabcontent");
-      for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
-      }
-
-      tablinks = document.getElementsByClassName("tablink");
-      for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" w3-teal", "");
-      }
-
-      document.getElementById(tabName).style.display = "block";
-      evt.currentTarget.className += " w3-teal";
-    }
-  </script>
 
   <!-- Navbar -->
   <div class="w3-top">
-  <div class="w3-bar w3-theme-d2 w3-left-align w3-xlarge">
-    <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-hover-white w3-theme-d2" href="javascript:void(0);" onclick="openNav()"><i class="fa fa-bars"></i></a>
-    <a href="#" onclick="checkLoginAndRedirect('/AnimalManager')" class="w3-bar-item w3-button"><i class="fa fa-home w3-margin-right"></i>HOME</a>
-    <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/myfarm')" class="w3-bar-item w3-button w3-hide-small w3-hover-white" id="role">我的牧場</a>
-    <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/predict')" class="w3-bar-item w3-button w3-hide-small w3-hover-white" id="growthBtn">成長預測</a>
-    <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/gene')" class="w3-bar-item w3-button w3-hide-small w3-hover-white" id="geneBtn">基因資料庫</a>
-    <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/genePredict')" class="w3-bar-item w3-button w3-hide-small w3-hover-white" id="genePredictBtn">基因預測</a>
-    <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/history')" class="w3-bar-item w3-button w3-hide-small w3-hover-white">歷史紀錄</a>
-    <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/search')" class="w3-bar-item w3-button w3-hide-small w3-right w3-hover-teal w3-teal" title="Search"><i class="fa fa-search"></i></a>
-    <div class="w3-container w3-right" id="authButtons">  
-      <button onclick="document.getElementById('id01').style.display='block'" class="w3-button w3-theme w3-hover-teal" title="登入/註冊">登入/註冊</button>
-    </div>
-  </div>
-
-  <!-- Navbar on small screens -->
-    <div id="navDemo" class="w3-bar-block w3-theme-d2 w3-hide w3-hide-large w3-hide-medium">
-      <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/myfarm')" class="w3-bar-item w3-button">我的牧場</a>
-      <a href="#contact" class="w3-bar-item w3-button">成長預測</a>
-      <div class="w3-container">  
-        <button onclick="openSignupTab()" class="w3-button w3-theme w3-hover-teal">登入/註冊</button>
+    <div class="w3-bar w3-theme-d2 w3-left-align w3-xlarge">
+      <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-hover-white w3-theme-d2" href="javascript:void(0);" onclick="openNav()"><i class="fa fa-bars"></i></a>
+      <a href="#" onclick="checkLoginAndRedirect('/AnimalManager')" class="w3-bar-item w3-button"><i class="fa fa-home w3-margin-right"></i>HOME</a>
+      <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/myfarm')" class="w3-bar-item w3-button w3-hide-small w3-hover-white" id="role">我的牧場</a>
+      <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/predict')" class="w3-bar-item w3-button w3-hide-small w3-hover-white" id="growthBtn">成長預測</a>
+      <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/gene')" class="w3-bar-item w3-button w3-hide-small w3-hover-white" id="geneBtn">基因資料庫</a>
+      <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/genePredict')" class="w3-bar-item w3-button w3-hide-small w3-hover-white" id="genePredictBtn">基因預測</a>
+      <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/history')" class="w3-bar-item w3-button w3-hide-small w3-hover-white">歷史紀錄</a>
+      <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/search')" class="w3-bar-item w3-button w3-hide-small w3-right w3-hover-teal w3-teal" title="Search"><i class="fa fa-search"></i></a>
+      <div class="w3-container w3-right" id="authButtons">  
+        <button onclick="document.getElementById('id01').style.display='block'" class="w3-button w3-theme w3-hover-teal" title="登入/註冊">登入/註冊</button>
       </div>
-      <a href="/AnimalManager/search" class="w3-bar-item w3-button">Search</a>
+    </div>
+
+    <!-- Navbar on small screens -->
+    <div id="navDemo" class="w3-bar-block w3-theme-d2 w3-hide w3-hide-large w3-hide-medium">
+      <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/myfarm')" class="w3-bar-item w3-button" id="mobile_myfarm">我的牧場</a>
+      <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/predict')" class="w3-bar-item w3-button" id="mobile_growth">成長預測</a>
+      <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/gene')" class="w3-bar-item w3-button" id="mobile_gene" style="display:none">基因資料庫</a>
+      <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/genePredict')" class="w3-bar-item w3-button" id="mobile_genePredict" style="display:none">基因預測</a>
+      <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/history')" class="w3-bar-item w3-button">歷史紀錄</a>
+      <a href="#" onclick="checkLoginAndRedirect('/AnimalManager/search')" class="w3-bar-item w3-button">Search</a>
     </div>
   </div>
 
@@ -198,8 +179,7 @@
   <script src="/static/js/ForgotPW.js"></script>
 
   <!-- 使用者登入狀態 -->
-  <script src="/static/js/localStorage.js"></script>
-
+  <script src="/static/js/localStorage.js?v=1.3"></script>
   <!-- 查詢 -->
   <script src="/static/js/search.js"></script>
 </body>

@@ -46,6 +46,7 @@ Thumbs.db
 .flaskenv
 *.local
 instance/
+ngrok.yml
 
 # ----------------------------------
 # 5. 模型權重與訓練輸出
