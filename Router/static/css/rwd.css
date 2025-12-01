@@ -1,0 +1,58 @@
+html {
+    height: auto !important;
+}
+
+body {
+    display: flex !important;
+    flex-direction: column !important;
+    
+    min-height: 100vh !important; /* 確保至少佔滿整個螢幕 */
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden !important;
+    
+    /* 導覽列留白 */
+    padding-top: 20px !important;
+}
+
+#wrapper {
+    width: 100%;
+    flex: 1; 
+    display: block;
+    position: relative;
+    margin: 0;
+    padding: 0;
+}
+
+footer {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+}
+
+@media (max-width: 600px) {
+    body {
+        /* 手機版導覽列高度通常不變，除非有換行。 */
+        padding-top: 60px !important; 
+    }
+    
+    .w3-display-container img {
+        min-height: 250px !important;
+        object-fit: cover; /* 保持比例不變形 */
+    }
+}
+
+.w3-display-container {
+    width: 100%;
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+
+.w3-display-container img {
+    width: 100%;
+    /* 圖片預設是 inline-block，這會導致圖片下方多出 3~4px 的文字基線空白 (像字母 g, y 下面的空間)
+       改成 block 就可以消除這個空白 */
+    display: block; 
+    margin: 0;
+    padding: 0;
+}

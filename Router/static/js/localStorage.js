@@ -84,7 +84,7 @@ function updateNavbarVisibility() {
   const loginHtml = `<button onclick="document.getElementById('id01').style.display='block'" class="w3-button w3-theme w3-hover-teal" title="登入/註冊">登入/註冊</button>`;
   
   const welcomeHtml = `
-    <span class="w3-bar-item">歡迎 ${userName} (${roleLabel})</span>
+    <span class="w3-bar-item">${userName} (${roleLabel})</span>
     <button onclick="logoutUser()" class="w3-button w3-theme w3-hover-red">登出</button>
   `;
 
@@ -141,12 +141,20 @@ async function registerUser(event) {
   let username = document.getElementById("signup_FarmName").value.trim();
   let email = document.getElementById("signup_mail").value;
   let password = document.getElementById("signup_pw").value;
+  let confirmPw = document.getElementById("signup_pw_confirm").value;
   let role = document.getElementById("userRole").value;
 
-  if (!username || !email || !password || !role) {
+  if (!username || !email || !password || !confirmPw || !role) {
     alert("請填寫完整的註冊資訊");
     return;
   }
+
+  // 比對兩次密碼是否一致
+  if (password !== confirmPw) {
+    alert("兩次密碼不一致，請確認後再送出！");
+    return;
+  }
+
   role = role.charAt(0).toUpperCase() + role.slice(1);
 
   try {
@@ -236,3 +244,76 @@ function openSignupTab() {
 window.onload = function() {
     updateNavbarVisibility();
 };
+
+
+const pwInput = document.getElementById("signup_pw");
+const confirmInput = document.getElementById("signup_pw_confirm");
+const strengthLabel = document.getElementById("pwStrength");
+const matchLabel = document.getElementById("pwMatch");
+const togglePw = document.getElementById("togglePw");
+const togglePw2 = document.getElementById("togglePw2");
+
+
+// 密碼強度檢查
+pwInput.addEventListener("input", function () {
+  const password = pwInput.value;
+
+  let score = 0;
+  if (password.length >= 6) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[\W]/.test(password)) score++;
+
+  if (!password) {
+    strengthLabel.textContent = "";
+  } else if (score <= 1) {
+    strengthLabel.textContent = "弱";
+    strengthLabel.style.color = "red";
+  } else if (score === 2 || score === 3) {
+    strengthLabel.textContent = "中";
+    strengthLabel.style.color = "orange";
+  } else {
+    strengthLabel.textContent = "強";
+    strengthLabel.style.color = "green";
+  }
+
+  checkMatch();
+});
+
+
+// 即時驗證兩次密碼是否一致
+confirmInput.addEventListener("input", checkMatch);
+
+function checkMatch(){
+  if (!confirmInput.value) {
+    matchLabel.textContent = "";
+    confirmInput.style.borderColor = "";
+    return;
+  }
+
+  if (pwInput.value === confirmInput.value) {
+    matchLabel.textContent = "✔ 密碼一致";
+    matchLabel.style.color = "green";
+    confirmInput.style.borderColor = "green";
+  } else {
+    matchLabel.textContent = "✖ 密碼不一致";
+    matchLabel.style.color = "red";
+    confirmInput.style.borderColor = "red";
+  }
+}
+
+
+// 眼睛按鈕切換顯示密碼
+togglePw.addEventListener("click", () => {
+  const isHidden = pwInput.type === "password";
+  pwInput.type = isHidden ? "text" : "password";
+  togglePw.classList.toggle("fa-eye");
+  togglePw.classList.toggle("fa-eye-slash");
+});
+
+togglePw2.addEventListener("click", () => {
+  const isHidden = confirmInput.type === "password";
+  confirmInput.type = isHidden ? "text" : "password";
+  togglePw2.classList.toggle("fa-eye");
+  togglePw2.classList.toggle("fa-eye-slash");
+});
