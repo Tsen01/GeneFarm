@@ -68,6 +68,8 @@ xgboost*
 XGBoost*
 
 # ----------------------------------
+# 6. 大型資料檔案
+# ----------------------------------
 GSE275445*
 GSE275684*
 GSM2896343*
@@ -75,7 +77,6 @@ GSM3896343*
 health_data_process.ipynb
 Milk_Data_process.ipynb
 weight_*
-
 gzto*
 *.gz
 *.sh
@@ -83,3 +84,5 @@ gzto*
 *.txt
 *.xls
 *.zip
+
+goat_notebook.ipynb
