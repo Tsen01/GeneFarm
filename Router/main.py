@@ -21,7 +21,7 @@ from predict import (
     multi_step_recursive_predict, multi_step_lr_predict,
     predict_with_lstm, predict_with_bilstm, predict_with_lr
 )
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 import matplotlib.pyplot as plt
 import io, base64
 from scipy.optimize import curve_fit
@@ -52,10 +52,6 @@ load_dotenv()
 
 # 允許的來源
 origins = os.getenv("ALLOWED_ORIGINS", "").split(",")
-
-print("SSH_HOST:", os.getenv("SSH_HOST"))
-print("MONGO_HOST:", os.getenv("MONGO_HOST"))
-print("ALLOWED_ORIGINS:", os.getenv("ALLOWED_ORIGINS"))
 
 
 # SSH and MongoDB Settings from Environment Variables
@@ -167,10 +163,10 @@ base_dir = os.path.dirname(__file__)  # 取得 main.py 所在目錄
 static_dir = os.path.join(base_dir, "static")
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
-# Enable CORS (more secure than allowing all origins)
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -229,17 +225,6 @@ async def animal_manager_gene(request: Request):
     return templates.TemplateResponse("history.html", {"request": request})
 
 
-# 測試是否有成功連到 MongoDB
-@app.get("/test_connection")
-async def test_connection():
-    try:
-        db = mongo_client[DB_NAME]
-        db_list = db.list_collection_names()
-        return {"status": "success", "collections": db_list}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
-
-
 # 載入資料集
 client = MongoClient(f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@localhost:27017/{DB_NAME}?authSource=admin")
 db = client[DB_NAME]
@@ -251,9 +236,8 @@ async def get_collections():
     try:
         collections = db.list_collection_names()
         return collections  # 會自動轉成 JSON
-    except Exception as e:
-        print(f"發生錯誤：{e}")
-        return JSONResponse(status_code=500, content={"error": str(e)})
+    except Exception:
+        raise HTTPException(status_code=500, detail="取得資料失敗")
 
 
 @app.post("/predict")
@@ -393,7 +377,7 @@ def run_prediction(payload: Dict = Body(...), current_user=Depends(get_current_u
     except Exception as e:
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=400, detail=f"Prediction error: {str(e)}")
+        raise HTTPException(status_code=400, detail="Prediction failed")
 
     def to_native(x):
         if isinstance(x, np.generic):
