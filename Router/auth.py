@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field, EmailStr
 from uuid import uuid4
 from database import create_user_collections
 from utils import hash_password, verify_password, create_token, decode_token
-from main import mongo_client
+# from main import mongo_client
 
 class RegisterRequest(BaseModel):
     username: str
@@ -31,28 +31,38 @@ security = HTTPBearer()
 def get_current_user(token: str = Depends(security)):
     try:
         payload = decode_token(token.credentials)
-        print("Token payload: ", payload)
         return payload  # 內含 sub(user_id), role, email, username
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
+# 註冊
 @auth_router.post("/register", response_model=TokenResponse)
 def register(request: Request, body: RegisterRequest):
-    print("原始請求內容:", body.json())
+
+    # 取得 FastAPI 啟動時建立的 MongoDB Client
     mongo_client = request.app.state.mongo_client
-    db = mongo_client['user_accounts']
+
+    # 確認 MongoDB Client 是否已正確初始化
     if not mongo_client:
         raise RuntimeError("MongoDB client register 未正確初始化")
 
-    # 確保 email 欄位具有唯一索引（只會建立一次）
+    # 使用 user_accounts 資料庫
+    db = mongo_client['user_accounts']
+
+    # 確保 Email 欄位具有唯一索引，避免相同 Email 重複註冊
     db.users.create_index("email", unique=True)
 
+    # 檢查 Email 是否已經註冊
     if db.users.find_one({"email": body.email}):
         raise HTTPException(status_code=400, detail="此 Email 已被註冊，請登入或使用其他 Email。")
 
+    # 建立唯一的使用者 ID
     user_id = str(uuid4())
+    
+    # 將使用者密碼進行雜湊後再儲存
     hashed_pw = hash_password(body.password)
 
+    # 將使用者基本資料寫入 users collection
     db.users.insert_one({
         "username": body.username,
         "email":body.email,
@@ -61,14 +71,10 @@ def register(request: Request, body: RegisterRequest):
         "user_id": user_id
     })
 
+    # 建立該使用者專屬的 MongoDB collections
     create_user_collections(mongo_client, user_id, body.role)
 
-    print("register 接收到：", body)
-    print("username:", body.username)
-    print("email:", body.email)
-    print("password:", body.password)
-    print("role:", body.role)
-
+    # 建立 JWT Token，將使用者基本資訊寫入 Token
     token = create_token({
         "sub": user_id, 
         "username": body.username,
@@ -84,20 +90,23 @@ def register(request: Request, body: RegisterRequest):
         username=body.username
     )
 
-
+# 登入
 @auth_router.post("/login", response_model=TokenResponse)
 async def login(request: Request, body: LoginRequest):
     try:
+        # 取得 FastAPI 啟動時建立的 MongoDB Client
         mongo_client = request.app.state.mongo_client
-        db = mongo_client['user_accounts']
+
+        # 確認 MongoDB Client 是否已正確初始化
         if not mongo_client:
             raise RuntimeError("MongoDB client login 未正確初始化")
-        print("成功連線到 goat_project")
-        # print("解析登入資料:", body)
-        
+
+        # 使用 user_accounts 資料庫
+        db = mongo_client['user_accounts']
+
+        # 根據 Email 查詢使用者
         user = db.users.find_one({"email": body.email})
         if not user:
-            print(f"❌ 查無此使用者：{body.email}")
             raise HTTPException(status_code=401, detail="無此帳號，請先註冊！")
         
         if not verify_password(body.password, user['password']):
@@ -109,7 +118,7 @@ async def login(request: Request, body: LoginRequest):
             "role": user['role'],
             "email": user['email']
         })
-        print("user =", user)
+        
         return TokenResponse(
             token=token,
             role=user['role'],
@@ -120,13 +129,12 @@ async def login(request: Request, body: LoginRequest):
     except HTTPException:
         raise # 已經處理過的 HTTPException，直接拋出
     except Exception as e:
-        print("登入錯誤：", str(e))
         raise HTTPException(status_code=500, detail="Internal Server Error")
     
 @auth_router.get("/me", response_model=TokenResponse)
 def get_me(current_user: dict = Depends(get_current_user)):
     return TokenResponse(
-        token="",  # /me 不需要再發 token，回空字串就好
+        token="",  # /me 不需要重新產生 Token，因此回傳空字串
         role=current_user["role"],
         user_id=current_user["sub"],
         email=current_user["email"],
